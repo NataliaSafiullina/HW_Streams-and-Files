@@ -32,9 +32,8 @@ public class Main {
             makeFile(file, logger);
         }
 
-
-        writeLog(files.get(2), logger);
         // В директории temp создайте файл temp.txt
+        writeLog(files.get(2), logger);
 
 
         // Список запаковываемых объектов в виде списка строчек String полного пути к файлу
