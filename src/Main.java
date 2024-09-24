@@ -32,14 +32,10 @@ public class Main {
             makeFile(file, logger);
         }
 
+
+        writeLog(files.get(2), logger);
         // В директории temp создайте файл temp.txt
-        FileWriter tempFile = new FileWriter(files.get(2));
-        // Запись результатов в файл
-        try (BufferedWriter bw = new BufferedWriter(tempFile)) {
-            bw.write(String.valueOf(logger));
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
-        }
+
 
         // Список запаковываемых объектов в виде списка строчек String полного пути к файлу
         List<String> filesProgress = new ArrayList<>();
@@ -67,6 +63,16 @@ public class Main {
         String anyFile = SAVEGAMES + GameLoad.prefixName + "save1.dat";
         System.out.println(GameLoad.openProgress(anyFile));
 
+    }
+
+    private static void writeLog(String file, StringBuilder logger) throws IOException {
+        FileWriter tempFile = new FileWriter(file);
+        // Запись результатов в файл
+        try (BufferedWriter bw = new BufferedWriter(tempFile)) {
+            bw.write(String.valueOf(logger));
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
     }
 
     private static List<String> getDirs() {
