@@ -1,251 +1,122 @@
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 public class Main {
 
-    public static final String prefixName = "\\unzipped_";
+    // Как сделать без константы?
+    public static String SAVEGAMES = "C://Games//savegames";
 
     public static void main(String[] args) throws IOException {
 
         // Задача 1 - Установка
-
-        String dir = "C://Games";
-        StringBuilder log = new StringBuilder();
-
-        // В папке Games будет несколько директорий: src, res, savegames, temp.
-        File srcDir = new File(dir + "//src");
-        File resDir = new File(dir + "//res");
-        File savegamesDir = new File(dir + "//savegames");
-        File tempDir = new File(dir + "//temp");
-
+        // В папке Games создайте несколько директорий: src, res, savegames, temp.
         // В каталоге src создайте две директории: main, test.
-        File mainDir = new File(srcDir + "//mail");
-        File testDir = new File(srcDir + "//test");
-
         // В подкаталоге main создайте два файла: Main.java, Utils.java.
-        File mainFile = new File(mainDir, "Main.java");
-        File utilsFile = new File(mainDir, "Utils.java");
-
         // В каталог res создайте три директории: drawables, vectors, icons.
-        File drawablesDir = new File(resDir + "//drawables");
-        File vectorsDir = new File(resDir + "//vectors");
-        File iconsDir = new File(resDir + "//icons");
+        // В директории temp создайте файл temp.txt
 
+        // Создаем список папок
+        List<String> dirs = getDirs();
+        // Создаем список файлов
+        List<String> files = getFiles();
+        // Создаем строку лога
+        StringBuilder logger = new StringBuilder();
 
-        // Создаем коталоги в корневой папке
-        log.append((srcDir.mkdir()) ? "Success - dir src is created \n" : "Fail - dir src isn't created \n");
-        log.append((resDir.mkdir()) ? "Success - dir res is created \n" : "Fail - dir res isn't created \n");
-        log.append((savegamesDir.mkdir()) ? "Success - dir savegames is created \n" : "Fail - dir savegames isn't created \n");
-        log.append((tempDir.mkdir()) ? "Success - dir temp is created \n" : "Fail - dir temp isn't created \n");
-
-        // Если папка src успешно создана создадим в ней папки
-        if (srcDir.exists()) {
-            log.append((mainDir.mkdir()) ? "Success - dir main is created \n" : "Fail - dir main isn't created \n");
-            log.append((testDir.mkdir()) ? "Success - dir test is created \n" : "Fail - dir test isn't created \n");
+        // Создадим сами папки
+        for (String dir : dirs) {
+            makeDir(dir, logger);
         }
-
-        // Если папка main успешно создана создадим в ней файлы
-        if (mainDir.exists()) {
-            try {
-                if (mainFile.createNewFile()) {
-                    log.append("Success - file Main.java is created \n");
-                }
-            } catch (IOException e) {
-                log.append("Fail - file Main.java isn't created \n");
-            }
-
-            try {
-                if (utilsFile.createNewFile()) {
-                    log.append("Success - file Utils.java is created \n");
-                }
-            } catch (IOException e) {
-                log.append("Fail - file Utils.java isn't created \n");
-            }
+        // Создадим файлы
+        for (String file : files) {
+            makeFile(file, logger);
         }
-
-        // Если папки res созадана успешно созаддим в ней папки
-        if (resDir.exists()) {
-            log.append((drawablesDir.mkdir()) ? "Success - dir drawables is created \n" : "Fail - dir drawables isn't created \n");
-            log.append((vectorsDir.mkdir()) ? "Success - dir vectors is created \n" : "Fail - dir vectors isn't created \n");
-            log.append((iconsDir.mkdir()) ? "Success - dir icons is created \n" : "Fail - dir icons isn't created \n");
-        }
-
 
         // В директории temp создайте файл temp.txt
-        FileWriter tempFile = new FileWriter(new File(tempDir, "temp.txt"));
+        FileWriter tempFile = new FileWriter(files.get(2));
         // Запись результатов в файл
         try (BufferedWriter bw = new BufferedWriter(tempFile)) {
-            bw.write(String.valueOf(log));
+            bw.write(String.valueOf(logger));
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
 
-        // Задача 2 - Сохранение
-        // 1. Создать три экземпляра класса GameProgress.
-        // 2. Сохранить сериализованные объекты GameProgress в папку savegames из предыдущей задачи.
-        // 3. Созданные файлы сохранений из папки savegames запаковать в один архив zip.
-        // 4. Удалить файлы сохранений, лежащие вне архива.
-
         // Список запаковываемых объектов в виде списка строчек String полного пути к файлу
+        List<String> filesProgress = new ArrayList<>();
+
+        // Запишем несколько прогрессов игры
+        GameProgress[] gameProgresses = {
+                new GameProgress(100, 30, 10, 1.0),
+                new GameProgress(99, 29, 9, 0.9),
+                new GameProgress(98, 28, 8, 0.8)
+        };
+        // Сохраним каждый прогресс в файл
+        for (int i = 0; i < gameProgresses.length; i++) {
+            GameProgress gameProgress = gameProgresses[i];
+            String file = SAVEGAMES + "\\save" + i + ".dat";
+            GameSave.saveGame(file, gameProgress);
+            filesProgress.add(file);
+        }
+        // Запакуем файлы прогрессов в архив
+        String zipFileName = SAVEGAMES + "//zip.zip";
+        GameSave.zipFiles(zipFileName, filesProgress);
+
+        // Распакуем файлы прогрессов из архива
+        GameLoad.openZip(zipFileName, SAVEGAMES);
+        // Произвольный файл прогресса десеарилизуем данные
+        String anyFile = SAVEGAMES + GameLoad.prefixName + "save1.dat";
+        System.out.println(GameLoad.openProgress(anyFile));
+
+    }
+
+    private static List<String> getDirs() {
+        List<String> dirs = new ArrayList<>();
+        dirs.add("C://Games//src");
+        dirs.add("C://Games//src//mail");
+        dirs.add("C://Games//src//test");
+        dirs.add("C://Games//res");
+        dirs.add("C://Games//res//drawables");
+        dirs.add("C://Games//res//vectors");
+        dirs.add("C://Games//res//icons");
+        dirs.add(SAVEGAMES);
+        dirs.add("C://Games//temp");
+        return dirs;
+    }
+
+    public static List<String> getFiles() {
         List<String> files = new ArrayList<>();
-
-        GameProgress gameProgress1 = new GameProgress(100, 30, 10, 1.0);
-        String file1 = savegamesDir + "\\save1.dat";
-        saveGame(file1, gameProgress1);
-        files.add(file1);
-
-        GameProgress gameProgress2 = new GameProgress(99, 29, 9, 0.9);
-        String file2 = savegamesDir + "\\save2.dat";
-        saveGame(file2, gameProgress2);
-        files.add(file2);
-
-        GameProgress gameProgress3 = new GameProgress(98, 28, 8, 0.8);
-        String file3 = savegamesDir + "\\save3.dat";
-        saveGame(file3, gameProgress3);
-        files.add(file3);
-
-        String zipFileName = savegamesDir + "//zip.zip";
-        zipFiles(zipFileName, files);
-
-        // Задача 3 - Загрузка
-        // 1. Произвести распаковку архива в папке savegames.
-        // 2. Произвести считывание и десериализацию одного из разархивированных файлов save.dat.
-        // 3. Вывести в консоль состояние сохранненой игры.
-        openZip(zipFileName, savegamesDir.getPath());
-        String anyFile = savegamesDir.getPath() + prefixName + "save2.dat";
-        System.out.println(openProgress(anyFile));
-
+        files.add("C://Games//src//mail//Main.java");
+        files.add("C://Games//src//mail//Utils.java");
+        files.add("C://Games//temp//temp.txt");
+        return files;
     }
 
 
-    /**
-     * Метод сохранения игры
-     * <p>
-     * String path - путь к файлу куда сохранить
-     * gameProgress - объект, который нужно сохранит
-     */
-    public static void saveGame(String path, GameProgress gameProgress) {
+    private static void makeFile(String filePath, StringBuilder logger) {
+        File currentFile = new File(filePath);
+        String fileName = currentFile.getName();
+        String dirName = currentFile.getParent();
 
-
-        // Создаем выходной поток и сериализуем объект
-        try (FileOutputStream fos = new FileOutputStream(path);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-
-            // Запишем объект в файл
-            oos.writeObject(gameProgress);
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-
-    /**
-     * Метод, который архивирует указанный список файлов
-     * <p>
-     * pathArchive - путь и имя архива
-     * listFiles - список имён файлов, включая полный путь
-     */
-    public static void zipFiles(String pathArchive, List<String> listFiles) {
-
-        try (ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(pathArchive))) {
-
-            for (String path : listFiles) {
-
-                // создадим имя файла для zip-сущности
-                File file = new File(path);
-                String fileName = file.getName();
-
-                // создаем входящий поток
-                try (FileInputStream fis = new FileInputStream(path)) {
-                    // создаем объект ZipEntry
-                    ZipEntry entry = new ZipEntry(fileName);
-                    zout.putNextEntry(entry);
-
-                    // считываем содержимое файла в массив byte
-                    byte[] buffer = new byte[fis.available()];
-                    if (fis.read(buffer) > -1) {
-                        // добавляем содержимое к архиву
-                        zout.write(buffer);
-                    }
-
-                    // закроем zip-сущность
-                    zout.closeEntry();
-
-                } catch (IOException ex) {
-                    System.out.println(ex.getMessage());
-                }
-
-                // Удалим файл
-                if(!file.delete()){
-                    System.out.println("Ошибка удаления файла " + file.getName());
-                }
-
+        // Если папка существует, создадим в ней файл
+        File dir = new File(dirName);
+        File file = new File(dir, fileName);
+        try {
+            if (file.createNewFile()) {
+                logger.append(String.format("Success - file %s is created \n", fileName));
             }
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        } catch (IOException e) {
+            logger.append(String.format("Fail - file %s is not created \n", fileName));
         }
-
     }
 
-    /**
-     * Метод по разархивации архива и десериализации файла сохраненной игры в Java класс.
-     * <p>
-     * String pathArch - путь к архиву
-     * String pathDestination - целевой путь, куда распоковать
-     */
-    public static void openZip(String pathArch, String pathDestination) {
 
-        // открываем поток для архива и считываем архив по указанному пути
-        try (ZipInputStream zin = new ZipInputStream(new FileInputStream(pathArch))) {
-            ZipEntry entry;
-            String name;
-
-            while ((entry = zin.getNextEntry()) != null) {
-                // получим имя файла и немного преобразуем его, чтобы отличать от исходного
-                name = pathDestination + prefixName + entry.getName();
-
-                // распаковка
-                try (FileOutputStream fout = new FileOutputStream(name)) {
-                    for (int c = zin.read(); c != -1; c = zin.read()) {
-                        fout.write(c);
-                    }
-                    // запись всех данных, скопившихся в буфере в файл
-                    fout.flush();
-                    // закрываем текущую zip-сущность
-                    zin.closeEntry();
-                } catch (FileNotFoundException e) {
-                    System.out.println(e.getMessage());
-                }
-
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+    private static void makeDir(String dir, StringBuilder logger) {
+        File currentDir = new File(dir);
+        if (currentDir.mkdir()) {
+            logger.append(String.format("Success - directory %s is created \n", dir));
+        } else {
+            logger.append(String.format("Fail - directory %s is not created \n", dir));
         }
-
-    }
-
-    /**
-     * Метод извлечения данных из файла
-     * и запись состояния игры в объект
-     */
-    public static GameProgress openProgress(String path) {
-        GameProgress gameProgress = null;
-
-        // откроем входной поток на чтение
-        try (FileInputStream fis = new FileInputStream(path);
-             ObjectInputStream ois = new ObjectInputStream(fis)) {
-            // читаем файл и записываем в объект нашего класса
-            gameProgress = (GameProgress) ois.readObject();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-        return gameProgress;
     }
 
 }
