@@ -63,7 +63,7 @@ public class Main {
 
         // Распакуем файлы прогрессов из архива
         GameLoad.openZip(zipFileName, SAVEGAMES);
-        // Произвольный файл прогресса десеарилизуем данные
+        // Произвольный файл прогресса десериализуем данные
         String anyFile = SAVEGAMES + GameLoad.prefixName + "save1.dat";
         System.out.println(GameLoad.openProgress(anyFile));
 

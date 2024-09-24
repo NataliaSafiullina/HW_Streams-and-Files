@@ -15,6 +15,7 @@ import java.util.zip.ZipInputStream;
 public class GameLoad {
 
     public static final String prefixName = "\\unzipped_";
+
     /**
      * Метод по разархивации архива и десериализации файла сохраненной игры в Java класс.
      * <p>
